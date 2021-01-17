@@ -1,0 +1,27 @@
+title Example Flow
+
+participant User / Client System
+participant V-API
+participant InfluxDB
+
+participant Nats(example)
+
+participant V-Calculate
+
+
+User / Client System -> V-API: POST Request with data
+V-API -> InfluxDB: Save data (REST client for Influx)
+User / Client System -> V-API: GET Request for aggregates
+V-API -> V-Calculate: GET Request for aggregates
+V-Calculate -> InfluxDB: Request aggregates (REST client for Influx)
+V-Calculate -> V-API: Response with aggregates
+V-API -> User / Client System: Response with aggregates
+note over User / Client System,V-Calculate:async flow with internal message queue (not implemented)
+User / Client System -> V-API: GET Request for aggregates
+V-API -> User / Client System: ack response with id of request
+V-API -> Nats(example): message with request 
+V-Calculate -> Nats(example): retrieve message with request
+V-Calculate -> InfluxDB: Request aggregates (REST client for Influx)
+V-Calculate -> Nats(example): response message with aggregates
+V-API -> Nats(example): retrieve message with aggregates (topic includes id of request)
+V-API -> User / Client System: async callback with aggregates
